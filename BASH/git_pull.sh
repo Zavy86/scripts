@@ -41,11 +41,18 @@ then
  exit 0
 fi
 
-# cycle agrument repository array
+# cycle arguments repository array
 for REPOSITORY in "$@"
 do
  printf "\nPull repository $REPOSITORY\n"
  su -s /bin/bash $HTUSER -c "cd $HTDOCS$REPOSITORY && git reset --hard && git pull"
 done
-printf "\nAll done!\n\n"
+
+# repair htdocs permissions
+printf "\nRepair owner and permissions of $HTDOCS\n\n"
+chown -R $HTUSER:$HTUSER $HTDOCS
+chmod -R 755 $HTDOCS
+printf "\nRepair permissions\n\n"
 exit 0
+
+
