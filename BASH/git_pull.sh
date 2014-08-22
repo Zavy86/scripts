@@ -52,7 +52,6 @@ done
 printf "\nRepair owner and permissions of $HTDOCS\n\n"
 chown -R $HTUSER:$HTUSER $HTDOCS
 chmod -R 755 $HTDOCS
-printf "\nRepair permissions\n\n"
 exit 0
 
 
