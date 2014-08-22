@@ -36,10 +36,7 @@ UPTIME_H=$((UPTIME/60/60%24))
 UPTIME_D=$((UPTIME/60/60/24))
 
 # show statistics
-echo ""
-echo -e "HOST:\t$HOSTNAME\tIP: $IP"
-echo ""
-echo -e "CPU:\t$CPU % \tRAM: $RAM % \tHDD: $HDD %"
-echo ""
-echo -e "UPTIME:\t$UPTIME_D days, $UPTIME_H hours, $UPTIME_M minutes"
-echo ""
+printf "\nHOST:\t$HOSTNAME\tIP: $IP\n\n"
+printf "CPU:\t$CPU %%\tRAM: $RAM %%\tHDD: $HDD %%\n\n"
+printf "UPTIME:\t$UPTIME_D days, $UPTIME_H hours, $UPTIME_M minutes\n\n"
+exit 0

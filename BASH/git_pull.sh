@@ -45,7 +45,7 @@ fi
 for REPOSITORY in "$@"
 do
  printf "\nPull repository $REPOSITORY\n"
- su -s /bin/bash $HTUSER -c "cd $HTDOCS$REPOSITORY && git pull"
+ su -s /bin/bash $HTUSER -c "cd $HTDOCS$REPOSITORY && git reset --hard && git pull"
 done
 printf "\nAll done!\n\n"
 exit 0
