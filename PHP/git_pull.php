@@ -17,7 +17,7 @@ if($g_submit<>"form" && $g_submit<>"cron"){
   <form id="form_repositories" action="git_pull.php" method="get">
    <u>Repository to pull:</u><br><br>
    <?php
-   $dir="/";
+   $dir="../../";
    if(is_dir($dir)){
     if($dh=opendir($dir)){
      while(($file=readdir($dh))!==false){
