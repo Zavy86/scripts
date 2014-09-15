@@ -49,7 +49,7 @@ if groups $USER | grep &>/dev/null $DOMAINGROUP; then
         smbpasswd -U $USER -r $DOMAINCONTROLLER
 else
         printf "\nChange your local password\n\n"
-        passwd
+        passwd $1
 fi
 
 # get command exit status and exit
