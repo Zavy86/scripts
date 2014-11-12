@@ -69,7 +69,7 @@ if($g_submit<>"form" && $g_submit<>"cron"){
  if(is_array($_GET['repositories'])){
   foreach($_GET['repositories'] as $repository ) {
    // git pull all selected repository
-   $output.=exec('whoami')."@".exec('hostname').":".shell_exec("cd /var/www/".$repository." ; pwd ; git stash ; git pull")."\n\n";
+   $output.=exec('whoami')."@".exec('hostname').":".shell_exec("cd /var/www/".$repository." ; pwd ; git stash clear ; git pull")."\n\n";
   }
   if($g_submit<>"cron"){echo "<html>\n<head>\n<title>GIT Pull Script</title>\n</head>\n<body>\n<pre>\n";}
   echo $output;
