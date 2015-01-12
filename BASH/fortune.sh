@@ -35,5 +35,5 @@ for i in "$@"; do
  printf "<html><body><pre style='font: monospace'>";
  /usr/games/fortune -s | /usr/games/cowsay -f bunny
  printf "</pre></body></html>";
-) | mail -s "Fortune Cookie" -a "Content-type: text/html;" $i -- -f "Sensei <serverlinux@cogne.com>"
+) | mail -s "Fortune Cookie" -a "Content-type: text/html;" $i
 done
