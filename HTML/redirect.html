@@ -1,0 +1,15 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <title>Page Redirection</title>
+  <script type="text/javascript">
+   function redirect(url){
+    window.location.replace(url);
+   }
+  </script>
+ </head>
+ <body onLoad="setTimeout(function(){redirect('http://www.github.com')},3000);">
+  <p>If you are not redirected automatically, follow this <a href='http://www.github.com'>link to GitHub</a></p>
+ </body>
+</html>
