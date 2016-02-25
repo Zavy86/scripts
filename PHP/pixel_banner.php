@@ -1,9 +1,9 @@
 <?php
 /**
- * Pixel Banner
+ * Pixel Banner Generator
  *
- * Version: 1.0
- * Author: Manuel Zavatta <manuel.zavatta@gmail.com>
+ * Version: 1.0.0
+ * Authors: Manuel Zavatta <manuel.zavatta@gmail.com>
  *
  * Example: pixel_banner.php?txt1=PIXEL&txt2=banner%20by%20Zavynet.org&bg1=ff0000&bg2=DFDFDF&fg1=FFFFFF&fg2=666666&br1=FFFFFF&br2=666666&size=180&bar=43
  *
@@ -25,8 +25,6 @@
  // acquire bar position
  $bar=$_GET['bar'];
  // default values
- if(!$txt1){$txt1="PIXEL";}
- if(!$txt2){$txt2="banner by Zavynet.org";}
  if(!$bg1_hex){$bg1_hex="DD0000";}
  if(!$bg2_hex){$bg2_hex="DFDFDF";}
  if(!$fg1_hex){$fg1_hex="FFFFFF";}
@@ -35,6 +33,29 @@
  if(!$br2_hex){$br2_hex="FFFFFF";}
  if(!$size){$size=180;}
  if(!$bar){$bar=43;}
+ // check text or show help
+ if(!$txt1 && !$txt2){
+  $example_url="http://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?txt1=PIXEL&txt2=banner%20by%20Zavynet.org&bg1=ff0000&bg2=DFDFDF&fg1=FFFFFF&fg2=666666&br1=FFFFFF&br2=666666&size=180&bar=43";
+  $help="<strong>Pixel Banner Generator</strong>\n\n";
+  $help.="Version: 1.0.0\n";
+  $help.="Authors: Manuel Zavatta &lt;manuel.zavatta@gmail.com&gt;\n\n";
+  $help.="Example: <a href='$example_url'>".$example_url."</a>\n\n";
+  $help.="<u> Parameter </u>|<u> Description            </u>\n";
+  $help.=" txt1      | Left box text\n";
+  $help.=" txt2      | Right box text\n";
+  $help.=" bg1       | Left box background color\n";
+  $help.=" bg2       | Right box background color\n";
+  $help.=" fg1       | Left box foreground color\n";
+  $help.=" fg2       | Right box foreground color\n";
+  $help.=" br1       | External border color\n";
+  $help.=" br2       | Internal border color\n";
+  $help.=" size      | Banner size\n";
+  $help.=" bar       | Central bar position\n";
+  echo "<html>\n<head>\n<title>Pixel Banner Generator</title>\n</head>\n<body>\n<pre>\n";
+  print_r($help);
+  echo "</pre>\n</body>\n</html>";
+  die();
+ }
  // convert hex color code in rgb
  function hex2rgb($html_color_code){
   $hex=str_replace("#","",$html_color_code);
