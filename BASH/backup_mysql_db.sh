@@ -26,7 +26,7 @@ display_usage(){
 FILE=""
 DIRECTORY="./"
 LASTONLY=FALSE
-NOW="$(date +"%Y-%m-%d %H.%M.%S")"
+NOW="$(date +"%Y%m%d")"
 HOST="$(hostname)"
 GZIP="$(which gzip)"
 MYSQL="$(which mysql)"
