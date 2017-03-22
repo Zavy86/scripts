@@ -1,5 +1,5 @@
 # Scripts
-Useful BASH and PHP Scripts..
+Useful BASH, PHP, PYTHON and others Scripts..
 
 - Website - [http://www.coordinator.it](http://www.coordinator.it)
 - GitHub project - [https://github.com/Zavy86/scripts](https://github.com/Zavy86/scripts)
