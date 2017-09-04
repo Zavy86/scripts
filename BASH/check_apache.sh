@@ -8,6 +8,7 @@
 #
 
 # initializations
+HOSTNAME=`hostname -f`
 PATH="/bin:/sbin:/usr/bin"
 TMPDIR="/tmp/apache-watchdog"
 EMAIL=""
@@ -100,7 +101,7 @@ else
 		echo >> $TMPDIR/mail
 
 		# send mail
-		mail -s "apache-watchdog: apache crashed" $EMAIL < $TMPDIR/mail
+		mail -s "Apache crashed on $HOSTNAME" $EMAIL < $TMPDIR/mail
 
 		# console alert
 		echo "Trying to restart Apache process.."
@@ -121,7 +122,7 @@ else
 		echo "Rebooting server now.." >> $TMPDIR/mail
 
 		# send mail
-		mail -s "apache-watchdog: apache crashed" $EMAIL < $TMPDIR/mail
+		mail -s "Apache crashed on $HOSTNAME" $EMAIL < $TMPDIR/mail
 
 		# console alert
 		echo "Killing apache process.."
