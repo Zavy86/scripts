@@ -81,7 +81,7 @@ Do While ( server_trovato = 0 )
 		Exit Do
 	Else
 		' logga il tentativo fallito
-		log = log & Now() & " Tentativo di accesso alla direcotry di destinazione fallito" & vbCrLf & vbCrLf
+		log = log & Now() & " Tentativo di accesso alla directory di destinazione fallito" & vbCrLf & vbCrLf
 	End If
 	
 	' se i tentativi sono finiti esce dal ciclo
