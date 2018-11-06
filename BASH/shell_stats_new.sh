@@ -1,17 +1,17 @@
 #!/bin/bash
 #
-# Script: shell_stats.sh
+# Script: shell_stats_new.sh
 #
 # Description: Show host statistics
 # Author: Manuel Zavatta
-# Last update: 22.08.2014
+# Last update: 2018-11-06
 #
 
 # get hostname
 HOSTNAME=`hostname -f`
 
 # get IP address
-IP=`/sbin/ifconfig ens32 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+IP=`/sbin/ifconfig ens32 | grep 'inet ' | cut -d: -f2 | awk '{ print $2}'`
 
 # get cpu usage
 CPU=`grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}'`
