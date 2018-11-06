@@ -1,0 +1,265 @@
+/**
+ * Trace Log
+ * Write a text in the log file
+ * Last update: 2017-11-08
+ *
+ * @param string P_TEXT Text to write in the log file
+ */
+SUB TRACE_LOG(P_TEXT)
+	TRACE $(P_TEXT);
+END SUB
+
+/**
+ * Default Settings
+ * Set default application parameters
+ * Last update: 2017-11-12
+ *
+ * @param string P_TYPOLOGY Typology specific settings [IMPORT,MODEL,APP]
+ */
+SUB DEFAULT_SETS(P_TYPOLOGY)
+	//
+	CALL TRACE_LOG('Loading settings..')
+	// default settings
+	SET ThousandSep='.';
+	SET DecimalSep=',';
+	SET MoneyThousandSep='.';
+	SET MoneyDecimalSep=',';
+	//SET MoneyFormat='$#,##0.00;-$#,##0.00';
+	SET MoneyFormat='#.##0,00;-#.##0,00';
+	SET TimeFormat='hh:mm:ss';
+	SET DateFormat='YYYY-MM-DD';
+	//SET TimestampFormat='M/D/YYYY h:mm:ss[.fff] TT';
+	SET TimestampFormat='YYYY-MM-DD hh:mm:ss';
+	SET FirstWeekDay=1;
+	SET BrokenWeeks=1;
+	SET ReferenceDay=0;
+	SET FirstMonthOfYear=1;
+	//SET CollationLocale='en-US';
+	SET CollationLocale='it-IT';
+	SET CreateSearchIndexOnReload=1;
+	SET MonthNames='Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec';
+	SET LongMonthNames='January;February;March;April;May;June;July;August;September;October;November;December';
+	SET DayNames='Mon;Tue;Wed;Thu;Fri;Sat;Sun';
+	SET LongDayNames='Monday;Tuesday;Wednesday;Thursday;Friday;Saturday;Sunday';
+	// Switch typology
+	SWITCH P_TYPOLOGY
+		// Import application specific settings
+		CASE 'IMPORT'
+			CALL TRACE_LOG('Import application typology..')
+			
+		// Modelling application specific settings
+		CASE 'MODEL'
+			CALL TRACE_LOG('Modelling application typology..')
+			
+		// End user application specific settings
+		CASE 'APP'
+			CALL TRACE_LOG('End user application typology..')
+			// Hide key with double underscore prefix
+			SET HidePrefix='__';
+		// Default settings
+		DEFAULT
+			CALL TRACE_LOG('Typology not defined..')
+	END SWITCH
+	//
+	CALL TRACE_LOG('Settings loaded..')
+END SUB
+
+/**
+ * Read Array
+ * Read bidimensional array
+ * Last update: 2017-11-21
+ *
+ * @param array P_ARRAY Array format "'key_1'=>'value_1','key_2'=>'value_2',[...],'key_N'=>'value_N'"
+ */
+SUB READ_ARRAY(P_ARRAY)
+	// cycle all elements
+	FOR i = 0 to SUBSTRINGCOUNT(P_ARRAY,',');
+		// split element into key and value
+		LET V_KEY = SUBFIELD(TRIM(SUBFIELD(P_ARRAY,',',i+1)),'=>',1);
+		LET V_VALUE = SUBFIELD(TRIM(SUBFIELD(P_ARRAY,',',i+1)),'=>',2);
+        // if key is null use index as key
+		IF NOT LEN(V_VALUE) THEN
+			V_VALUE=V_KEY;
+            V_KEY=i;
+		END IF
+        // trace
+		TRACE $(V_KEY) => $(V_VALUE);
+	NEXT i;
+END SUB
+
+/**
+ * IMPORTS - Store QVD Details
+ * Store Import QVD Details
+ * Last update: 2017-11-21
+ *
+ * @param string P_SOURCE Source database or file
+ * @param string P_TABLE Resident table name
+ * @param string P_QVD_PATH QVD file path
+ * @param string P_NEW_ROWS Number of rows loaded in the last run
+ */
+SUB IMPORTS__STORE_QVD_DETAILS(P_SOURCE,P_TABLE,P_QVD_PATH,P_NEW_ROWS)
+	// Unqualify qvd details fields
+	UNQUALIFY SOURCE,QVD_NAME,QVD_PATH,QVD_SIZE,ROWS_COUNT,NEW_ROWS_COUNT,LAST_UPDATE;
+	// Check for new rows
+	IF ISNULL(P_NEW_ROWS) THEN
+		P_NEW_ROWS=NOOFROWS('$(P_TABLE)');
+	END IF
+	// Generate qvd details row
+	T_QVD_DETAILS: LOAD
+		'$(P_SOURCE)' AS [SOURCE],
+		'$(P_TABLE)' AS [QVD_NAME],
+		'$(P_QVD_PATH)' AS [QVD_PATH],
+		FILESIZE('$(P_QVD_PATH)') AS [QVD_SIZE],
+		NOOFROWS('$(P_TABLE)') AS [ROWS_COUNT],
+		'$(P_NEW_ROWS)' AS [NEW_ROWS_COUNT],
+		TIMESTAMP(NOW()) AS [LAST_UPDATE]
+		AUTOGENERATE 1;
+	// Concatenate other qvd details rows
+    CONCATENATE LOAD
+		SOURCE,
+		QVD_NAME,
+        QVD_PATH,
+    	QVD_SIZE,
+    	ROWS_COUNT,
+    	NEW_ROWS_COUNT,
+    	LAST_UPDATE
+	FROM [LIB://QVDFiles/IMPORTS/IMPORT_DETAILS.qvd](QVD)
+	// Without current generate row
+    WHERE NOT EXISTS(QVD_NAME);
+	// Store qvd details
+	STORE T_QVD_DETAILS INTO [LIB://QVDFiles/IMPORTS/IMPORT_DETAILS.qvd];
+	// Drop table
+	DROP TABLE T_QVD_DETAILS;
+	// Log
+	CALL TRACE_LOG(P_TABLE & ' qvd details stored..')
+END SUB
+
+/**
+ * IMPORTS - Store APC Table
+ * Import a table from APC into a QVD file in full refresh or incremental mode
+ * Last update: 2017-11-21
+ *
+ * @param string P_DB_TABLE Database table to import
+ * @param string P_QVD_NAME QVD file name 
+ * @param string P_TYPOLOGY Loading typology [FULL,INCREMENTAL]
+ * @param string P_INC_FIELD Database table date field for incremental loading
+ */
+SUB IMPORTS__STORE_APC_TABLE(P_DB_TABLE,P_QVD_NAME,P_TYPOLOGY,P_INC_FIELD)
+	CALL TRACE_LOG('Loading ' & P_DB_TABLE & ' into qvd..');
+	// Build qvd file path
+	LET V_QVD_PATH='LIB://QVDFiles/IMPORTS/' & P_QVD_NAME & '.qvd';
+	// Build query
+	LET V_QUERY='SELECT * FROM ' & P_DB_TABLE;
+	// Check for incremental load
+	IF P_TYPOLOGY='INCREMENTAL' THEN
+		CALL TRACE_LOG('Incremental loading..');
+		// Initialize last running date
+		LET V_LAST_RUNNING_DATE=NULL;
+		// Get qvd details
+		T_IMPORT_QVD_DETAILS: NOCONCATENATE LOAD * FROM [lib://QVDFiles/IMPORTS/IMPORT_DETAILS.qvd](QVD) WHERE ([QVD_NAME]='$(P_QVD_NAME)');
+		// Check for qvd details
+		IF NOOFROWS('T_IMPORT_QVD_DETAILS') THEN
+			// Set last running date
+			V_LAST_RUNNING_DATE=DATE(FLOOR(PEEK('LAST_UPDATE',0,T_IMPORT_QVD_DETAILS))-1);
+		END IF
+		// Drop qvd details
+		DROP TABLE T_IMPORT_QVD_DETAILS;
+		// If last running date not found set today
+		IF ISNULL(V_LAST_RUNNING_DATE) THEN
+			V_LAST_RUNNING_DATE='2017-01-01';
+			//
+			// PENSARE COSA FARE SE NON ESISTEVA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// 
+		END IF
+		// Build incremental query
+		V_QUERY=V_QUERY & ' WHERE ' & P_INC_FIELD & '>=TO_DATE(''' & V_LAST_RUNNING_DATE & ''',''yyyy-MM-dd'')';
+	ELSE
+		CALL TRACE_LOG('Full Refresh loading..');
+	END IF
+	// Debug query
+	TRACE $(V_QUERY);
+	// Build qvd table
+	$(P_QVD_NAME): NOCONCATENATE LOAD *;
+	// Execute sql query
+	SQL $(V_QUERY);
+	// Get number of new rows loaded
+	LET V_NEW_ROWS_COUNT=NOOFROWS('$(P_QVD_NAME)');
+	// Check for incremental load
+	IF P_TYPOLOGY='INCREMENTAL' THEN
+		// Check if qvd file exist
+		IF FILESIZE('$(V_QVD_PATH)') THEN
+			// Concatenate previous qvd rows
+			CONCATENATE LOAD * FROM [$(V_QVD_PATH)](QVD)
+			//  Without new rows
+			WHERE $(P_INC_FIELD)<'$(V_LAST_RUNNING_DATE)';
+		END IF
+	END IF
+	// Store qvd file
+	STORE $(P_QVD_NAME) INTO [$(V_QVD_PATH)];
+	// Log
+	CALL TRACE_LOG(P_QVD_NAME & ' qvd file stored..')
+	// Store qvd details
+	CALL IMPORTS__STORE_QVD_DETAILS('APC',P_QVD_NAME,V_QVD_PATH,V_NEW_ROWS_COUNT)
+	// Drop qvd table
+	DROP TABLE $(P_QVD_NAME);
+END SUB
+
+
+/**
+ * APPS - Load QVD Model file
+ * Load QVD Model file and build keys for the application
+ * Last update: 2017-11-21
+ *
+ * @param string P_TABLE Resident table name
+ * @param string P_QVD_NAME QVD file name 
+ * @param string P_KEYS Array of keys in format "'field_1'=>'__KEY_key_1','field_2'=>'__KEY_key_2',[...],'field_N'=>'__KEY_key_N'"
+ */
+SUB APP__LOAD_MODEL_QVD_NEW(P_TABLE,P_QVD_NAME,P_KEYS)
+	// Make qvd file path
+	LET V_QVD_PATH = 'LIB://QVDFiles/MODELS/' & P_QVD_NAME & '.qvd';
+	// Log
+	CALL TRACE_LOG('Loading table ' & P_TABLE & ' from ' & V_QVD_PATH & '..');
+	// Cycle all qvd file fields
+	FOR i = 1 TO QVDNOOFFIELDS('$(V_QVD_PATH)')
+		// Get current field name		
+		LET FIELD=QVDFIELDNAME('$(V_QVD_PATH)',$(i));
+		// Check for keys
+		IF LEFT(FIELD,5)='__ID_' THEN
+			// Qualified alias for keys
+			ALIAS $(FIELD) AS __$(P_TABLE).$(FIELD);
+		ELSE
+			// Qualified alias for fields
+			ALIAS $(FIELD) AS $(P_TABLE).$(FIELD);
+		END IF
+	NEXT
+	// Build keys alias
+    FOR i = 0 to SUBSTRINGCOUNT(P_KEYS,',');
+		// split element into key and value
+		LET V_KEY = REPLACE(SUBFIELD(TRIM(SUBFIELD(P_KEYS,',',i+1)),'=>',1),'''','');
+		LET V_VALUE = REPLACE(SUBFIELD(TRIM(SUBFIELD(P_KEYS,',',i+1)),'=>',2),'''','');
+        // check for key
+        IF LEN(V_KEY) THEN
+        	// if key value is null build as default
+			IF NOT LEN(V_VALUE) THEN
+				LET V_VALUE = '__KEY_' & REPLACE(V_KEY,'__ID_','');
+			END IF
+        	// check for key syntax
+			IF NOT LEFT(V_VALUE,6) = '__KEY_' THEN
+				LET V_VALUE = '__KEY_' & V_VALUE;
+			END IF
+    		// log
+			CALL TRACE_LOG('Build ' & V_VALUE & ' key..')
+			// Unqualified alias for used keys
+			ALIAS $(V_KEY) AS $(V_VALUE);
+		END IF
+	NEXT
+	// Load table from qvd
+	$(P_TABLE): NOCONCATENATE LOAD * FROM [$(V_QVD_PATH)](QVD) WHERE 1=1;
+END SUB
+
+
+
+
+
+// Trace Loading
+CALL TRACE_LOG('Functions loaded..')
