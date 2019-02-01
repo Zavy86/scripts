@@ -11,7 +11,7 @@
 HOSTNAME=`hostname -f`
 
 # get IP address
-IP=`/sbin/ifconfig ens32 | grep 'inet ' | cut -d: -f2 | awk '{ print $2}'`
+IP=`/sbin/ip a show ens32 | grep 'inet ' | cut -d: -f2 | awk '{ print $2}'`
 
 # get cpu usage
 CPU=`grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}'`
