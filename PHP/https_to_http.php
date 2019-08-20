@@ -1,7 +1,7 @@
 <?php
  // definitions
  $url=null;
- $get_array=array();
+ $get_array=array("http_remote_address"=>$_SERVER['REMOTE_ADDR']);
  // cycle all get parameters
  foreach($_GET as $key=>$value){if($key=="url"){$url=$value;}else{$get_array[$key]=$value;}}
  // check url
